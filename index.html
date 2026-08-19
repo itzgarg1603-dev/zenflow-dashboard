@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZenFlow // Your Aesthetic Productivity Space</title>
+    <!-- Google Fonts: Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- CSS Style Link -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-logo">
+                    <i data-lucide="compass" class="logo-icon animate-spin-slow"></i>
+                </div>
+                <div class="brand-info">
+                    <span class="brand-name">ZenFlow</span>
+                    <span class="brand-tagline">Stay centered.</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <button class="nav-item active" data-view="dashboard" id="nav-dashboard">
+                    <i data-lucide="layout-dashboard"></i>
+                    <span>Dashboard</span>
+                </button>
+                <button class="nav-item" data-view="kanban" id="nav-kanban">
+                    <i data-lucide="kanban-square"></i>
+                    <span>Task Board</span>
+                </button>
+                <button class="nav-item" data-view="notes" id="nav-notes">
+                    <i data-lucide="sticky-note"></i>
+                    <span>Zen Notes</span>
+                </button>
+                <button class="nav-item" data-view="pomodoro" id="nav-pomodoro">
+                    <i data-lucide="timer"></i>
+                    <span>Focus Timer</span>
+                </button>
+                <button class="nav-item" data-view="analytics" id="nav-analytics">
+                    <i data-lucide="bar-chart-3"></i>
+                    <span>Analytics</span>
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="profile-card">
+                    <div class="profile-avatar">
+                        <span>ZF</span>
+                    </div>
+                    <div class="profile-meta">
+                        <span class="profile-name">My ZenSpace</span>
+                        <span class="profile-status"><span class="status-dot green"></span>Active</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Header containing dynamic time & greeting -->
+            <header class="app-header">
+                <div class="header-welcome">
+                    <h1 id="dynamic-greeting">Welcome back</h1>
+                    <p id="dynamic-subtitle">Ready to find your flow today?</p>
+                </div>
+                <div class="header-time-widget glass-panel">
+                    <div class="time-display" id="clock-time">00:00:00</div>
+                    <div class="date-display" id="clock-date">Wednesday, August 19</div>
+                </div>
+            </header>
+
+            <!-- Active View Containers -->
+            <div class="view-viewport">
+                <!-- 1. DASHBOARD VIEW -->
+                <section class="view-pane active" id="view-dashboard">
+                    <div class="dashboard-grid">
+                        <!-- Hero Banner widget -->
+                        <div class="grid-item span-large hero-widget glass-panel gradient-border">
+                            <div class="hero-content">
+                                <h2>Your Daily Focus Flow</h2>
+                                <p>You have completed <strong id="hero-focus-mins">0</strong> minutes of deep focus today. Keep up the rhythm!</p>
+                                <button class="btn btn-primary" onclick="app.switchView('pomodoro')">
+                                    <i data-lucide="play" class="btn-icon"></i> Start Session
+                                </button>
+                            </div>
+                            <div class="hero-decoration">
+                                <div class="glow-orb"></div>
+                            </div>
+                        </div>
+
+                        <!-- Weather & Ambient widget -->
+                        <div class="grid-item glass-panel weather-widget">
+                            <div class="weather-header">
+                                <div class="weather-title">
+                                    <span class="widget-label">Current Ambient</span>
+                                    <h3 id="weather-location">Zen Garden</h3>
+                                </div>
+                                <div class="weather-icon-wrapper" id="weather-icon-container">
+                                    <i data-lucide="sun" class="weather-icon animate-pulse-slow"></i>
+                                </div>
+                            </div>
+                            <div class="weather-temp-container">
+                                <div class="temp-val" id="weather-temp">24°C</div>
+                                <div class="temp-desc" id="weather-desc">Perfect for meditation</div>
+                            </div>
+                            <div class="weather-footer">
+                                <span class="wind-info"><i data-lucide="wind"></i> <span id="weather-wind">Gentle breeze</span></span>
+                            </div>
+                        </div>
+
+                        <!-- Daily Quote Widget -->
+                        <div class="grid-item glass-panel quote-widget">
+                            <div class="widget-header">
+                                <i data-lucide="quote" class="widget-icon"></i>
+                                <span class="widget-label">Daily Focus Quote</span>
+                            </div>
+                            <blockquote class="quote-text" id="quote-content">"Simplicity is the ultimate sophistication."</blockquote>
+                            <cite class="quote-author" id="quote-author">Leonardo da Vinci</cite>
+                            <button class="quote-refresh-btn" id="quote-refresh" title="Get new inspiration">
+                                <i data-lucide="refresh-cw"></i>
+                            </button>
+                        </div>
+
+                        <!-- Mini Task List Overview -->
+                        <div class="grid-item glass-panel dashboard-tasks">
+                            <div class="widget-header">
+                                <i data-lucide="check-square" class="widget-icon"></i>
+                                <span class="widget-label">Tasks Overview</span>
+                            </div>
+                            <div class="mini-task-list" id="mini-task-container">
+                                <!-- Dynamically loaded task list snippets -->
+                                <p class="empty-state">No pending tasks today. Sit back and relax!</p>
+                            </div>
+                            <button class="btn btn-secondary btn-full-width" onclick="app.switchView('kanban')">
+                                Manage Tasks <i data-lucide="chevron-right"></i>
+                            </button>
+                        </div>
+
+                        <!-- Mini Focus Timer widget -->
+                        <div class="grid-item glass-panel dashboard-timer">
+                            <div class="widget-header">
+                                <i data-lucide="hourglass" class="widget-icon"></i>
+                                <span class="widget-label">Quick Focus</span>
+                            </div>
+                            <div class="mini-timer-display">
+                                <span id="mini-timer-time">25:00</span>
+                                <span class="mini-timer-state" id="mini-timer-state">Ready</span>
+                            </div>
+                            <div class="mini-timer-controls">
+                                <button class="btn-circle" id="mini-timer-toggle" title="Start Timer">
+                                    <i data-lucide="play"></i>
+                                </button>
+                                <button class="btn-circle btn-circle-secondary" onclick="app.switchView('pomodoro')" title="Open Focus Tab">
+                                    <i data-lucide="maximize-2"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. KANBAN TASK BOARD VIEW -->
+                <section class="view-pane" id="view-kanban">
+                    <div class="kanban-actions-bar">
+                        <h2>Personal Task Board</h2>
+                        <button class="btn btn-primary" id="btn-add-task">
+                            <i data-lucide="plus" class="btn-icon"></i> New Task
+                        </button>
+                    </div>
+                    
+                    <div class="kanban-board">
+                        <!-- Column: To Do -->
+                        <div class="kanban-column" id="col-todo" data-status="todo">
+                            <div class="column-header">
+                                <div class="column-title-wrapper">
+                                    <span class="status-indicator-dot todo"></span>
+                                    <h3>To Do</h3>
+                                </div>
+                                <span class="task-count" id="count-todo">0</span>
+                            </div>
+                            <div class="column-cards-container" id="cards-todo">
+                                <!-- Cards injected here -->
+                            </div>
+                        </div>
+
+                        <!-- Column: In Progress -->
+                        <div class="kanban-column" id="col-progress" data-status="progress">
+                            <div class="column-header">
+                                <div class="column-title-wrapper">
+                                    <span class="status-indicator-dot progress"></span>
+                                    <h3>In Progress</h3>
+                                </div>
+                                <span class="task-count" id="count-progress">0</span>
+                            </div>
+                            <div class="column-cards-container" id="cards-progress">
+                                <!-- Cards injected here -->
+                            </div>
+                        </div>
+
+                        <!-- Column: Completed -->
+                        <div class="kanban-column" id="col-done" data-status="done">
+                            <div class="column-header">
+                                <div class="column-title-wrapper">
+                                    <span class="status-indicator-dot done"></span>
+                                    <h3>Completed</h3>
+                                </div>
+                                <span class="task-count" id="count-done">0</span>
+                            </div>
+                            <div class="column-cards-container" id="cards-done">
+                                <!-- Cards injected here -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. ZEN NOTES VIEW -->
+                <section class="view-pane" id="view-notes">
+                    <div class="notes-layout" id="notes-list-layout">
+                        <div class="notes-sidebar glass-panel">
+                            <div class="notes-sidebar-header">
+                                <div class="search-box">
+                                    <i data-lucide="search" class="search-icon"></i>
+                                    <input type="text" id="notes-search" placeholder="Search notes...">
+                                </div>
+                                <button class="btn btn-primary btn-icon-only" id="btn-new-note" title="New Note">
+                                    <i data-lucide="plus"></i>
+                                </button>
+                            </div>
+                            <div class="notes-tags-scroll">
+                                <div class="tag-filter active" data-tag="all">All Notes</div>
+                                <div class="tag-filter" data-tag="work">#work</div>
+                                <div class="tag-filter" data-tag="personal">#personal</div>
+                                <div class="tag-filter" data-tag="ideas">#ideas</div>
+                            </div>
+                            <div class="notes-sidebar-list" id="notes-list-container">
+                                <!-- Notes list items inject here -->
+                            </div>
+                        </div>
+
+                        <!-- Active Note Details Pane -->
+                        <div class="notes-content glass-panel" id="notes-content-container">
+                            <div class="note-view-empty">
+                                <i data-lucide="book-open"></i>
+                                <h3>No Note Selected</h3>
+                                <p>Select an existing note from the list, or create a new one to start writing.</p>
+                                <button class="btn btn-secondary" id="btn-create-first-note">
+                                    Create New Note
+                                </button>
+                            </div>
+                            
+                            <div class="note-editor" style="display: none;">
+                                <div class="note-editor-header">
+                                    <div class="note-meta-inputs">
+                                        <input type="text" id="note-title-input" class="note-title-field" placeholder="Untitled Note">
+                                        <div class="note-category-picker">
+                                            <span class="meta-label">Category:</span>
+                                            <select id="note-tag-select">
+                                                <option value="general">#general</option>
+                                                <option value="work">#work</option>
+                                                <option value="personal">#personal</option>
+                                                <option value="ideas">#ideas</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="note-editor-actions">
+                                        <span class="save-indicator" id="note-save-status"><i data-lucide="check"></i> Saved</span>
+                                        <button class="btn-circle btn-circle-danger" id="btn-delete-note" title="Delete Note">
+                                            <i data-lucide="trash-2"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="note-body-wrapper">
+                                    <textarea id="note-body-input" class="note-body-field" placeholder="Start writing something mindful..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4. FOCUS TIMER (POMODORO) VIEW -->
+                <section class="view-pane" id="view-pomodoro">
+                    <div class="timer-layout">
+                        <div class="timer-glass-card glass-panel">
+                            <!-- Circular Countdown SVG -->
+                            <div class="timer-circle-container">
+                                <svg class="timer-svg" viewBox="0 0 200 200">
+                                    <!-- Background circle track -->
+                                    <circle class="timer-track" cx="100" cy="100" r="88" />
+                                    <!-- Interactive glowing stroke -->
+                                    <circle class="timer-progress" id="timer-progress-svg" cx="100" cy="100" r="88" />
+                                </svg>
+                                <div class="timer-details-overlay">
+                                    <span class="timer-state-label" id="timer-active-state">Work Focus</span>
+                                    <h2 class="timer-number" id="timer-large-time">25:00</h2>
+                                    <span class="timer-session-count" id="timer-session-count">Session #1</span>
+                                </div>
+                            </div>
+
+                            <!-- Preset Selectors -->
+                            <div class="timer-presets">
+                                <button class="btn-preset active" data-mode="work" data-time="25">Work Focus</button>
+                                <button class="btn-preset" data-mode="short" data-time="5">Short Break</button>
+                                <button class="btn-preset" data-mode="long" data-time="15">Long Break</button>
+                            </div>
+
+                            <!-- Timer Controls -->
+                            <div class="timer-controls">
+                                <button class="btn btn-secondary btn-icon-only" id="timer-btn-reset" title="Reset Session">
+                                    <i data-lucide="rotate-ccw"></i>
+                                </button>
+                                <button class="btn-circle-large" id="timer-btn-toggle" title="Play Focus">
+                                    <i data-lucide="play" class="play-icon"></i>
+                                </button>
+                                <button class="btn btn-secondary btn-icon-only" id="timer-btn-skip" title="Skip Session">
+                                    <i data-lucide="skip-forward"></i>
+                                </button>
+                            </div>
+
+                            <!-- Settings & Ambient Toggle -->
+                            <div class="timer-options">
+                                <label class="switch-container">
+                                    <input type="checkbox" id="timer-sound-enable" checked>
+                                    <span class="switch-slider"></span>
+                                    <span class="switch-label">Focus Bells</span>
+                                </label>
+                                <label class="switch-container">
+                                    <input type="checkbox" id="timer-ambient-enable">
+                                    <span class="switch-slider"></span>
+                                    <span class="switch-label">White Noise</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 5. ANALYTICS & STATS VIEW -->
+                <section class="view-pane" id="view-analytics">
+                    <div class="analytics-layout">
+                        <div class="analytics-headline">
+                            <h2>Your Progress Analytics</h2>
+                            <p>Track your productivity curves and focus metrics over time.</p>
+                        </div>
+                        
+                        <!-- Core Stats Grid -->
+                        <div class="stats-overview-grid">
+                            <div class="stat-card glass-panel">
+                                <div class="stat-icon-wrapper blue">
+                                    <i data-lucide="hourglass"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <span class="stat-label">Total Focus Duration</span>
+                                    <h3 class="stat-value" id="stats-total-hours">0.0h</h3>
+                                </div>
+                            </div>
+                            <div class="stat-card glass-panel">
+                                <div class="stat-icon-wrapper green">
+                                    <i data-lucide="check-circle-2"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <span class="stat-label">Tasks Completed</span>
+                                    <h3 class="stat-value" id="stats-completed-tasks">0</h3>
+                                </div>
+                            </div>
+                            <div class="stat-card glass-panel">
+                                <div class="stat-icon-wrapper yellow">
+                                    <i data-lucide="trending-up"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <span class="stat-label">Task Completion Rate</span>
+                                    <h3 class="stat-value" id="stats-completion-rate">0%</h3>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Graphical Layout -->
+                        <div class="analytics-charts-container">
+                            <!-- Focus minutes chart -->
+                            <div class="chart-card glass-panel span-full">
+                                <div class="chart-header">
+                                    <h3>Weekly Focus (Minutes)</h3>
+                                    <span class="chart-legend"><span class="legend-dot purple"></span>Focus Sessions</span>
+                                </div>
+                                <div class="chart-wrapper">
+                                    <canvas id="focus-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Task Creation Modal -->
+    <div class="modal" id="task-modal">
+        <div class="modal-content glass-panel animate-zoom-in">
+            <div class="modal-header">
+                <h3>Add New Task</h3>
+                <button class="close-btn" id="modal-close-task"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="task-title-input">Task Title</label>
+                    <input type="text" id="task-title-input" placeholder="e.g. Plan repository architecture">
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-6">
+                        <label for="task-priority-select">Priority</label>
+                        <select id="task-priority-select">
+                            <option value="low">Low Priority</option>
+                            <option value="medium" selected>Medium Priority</option>
+                            <option value="high">High Priority</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-6">
+                        <label for="task-tag-select">Category</label>
+                        <select id="task-tag-select">
+                            <option value="work" selected>Work</option>
+                            <option value="personal">Personal</option>
+                            <option value="ideas">Ideas</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="modal-cancel-task">Cancel</button>
+                <button class="btn btn-primary" id="modal-save-task">Create Task</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- App Script Files -->
+    <script src="js/app.js"></script>
+    <script src="js/kanban.js"></script>
+    <script src="js/notes.js"></script>
+    <script src="js/pomodoro.js"></script>
+    <script src="js/analytics.js"></script>
+    <script>
+        // Start app modules when DOM loads
+        document.addEventListener('DOMContentLoaded', () => {
+            app.init();
+            lucide.createIcons();
+        });
+    </script>
+</body>
+</html>
