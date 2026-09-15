@@ -4,6 +4,10 @@
 
 Because ZenFlow is entirely static, it loads instantly and can be deployed directly to **GitHub Pages** with zero build configuration!
 
+## 🌐 Live dashboard
+
+Open ZenFlow here: **[itzgarg1603-dev.github.io/zenflow-dashboard](https://itzgarg1603-dev.github.io/zenflow-dashboard/)**
+
 ---
 
 ## ✨ Features
