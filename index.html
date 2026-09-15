@@ -172,9 +172,15 @@
                 <section class="view-pane" id="view-kanban">
                     <div class="kanban-actions-bar">
                         <h2>Personal Task Board</h2>
-                        <button class="btn btn-primary" id="btn-add-task">
-                            <i data-lucide="plus" class="btn-icon"></i> New Task
-                        </button>
+                        <div class="kanban-actions">
+                            <span class="notification-status" id="notification-status" role="status">Reminders: off</span>
+                            <button class="btn btn-secondary" id="btn-enable-notifications" type="button">
+                                <i data-lucide="bell" class="btn-icon"></i> Enable Reminders
+                            </button>
+                            <button class="btn btn-primary" id="btn-add-task" type="button">
+                                <i data-lucide="plus" class="btn-icon"></i> New Task
+                            </button>
+                        </div>
                     </div>
                     
                     <div class="kanban-board">
@@ -414,7 +420,11 @@
                 </div>
                 <div class="form-row">
                     <div class="form-group col-6">
-                        <label for="task-priority-select">Priority</label>
+                    <label for="task-due-date-input">Due Date</label>
+                    <input type="date" id="task-due-date-input">
+                </div>
+                <div class="form-group col-6">
+                    <label for="task-priority-select">Priority</label>
                         <select id="task-priority-select">
                             <option value="low">Low Priority</option>
                             <option value="medium" selected>Medium Priority</option>

@@ -14,6 +14,7 @@
         notes: [],
         focusHistory: [],
         quoteIndex: 0,
+        reminders: { permission: "default", notified: {} },
         timer: { mode: "work", sessions: 1, sound: true, ambient: false }
     };
     var state = loadState();
@@ -26,9 +27,15 @@
     function loadState() {
         try {
             var saved = JSON.parse(window.localStorage.getItem(STORAGE_KEY) || "null");
-            return Object.assign(clone(defaultState), saved || {}, {
+            var loaded = Object.assign(clone(defaultState), saved || {}, {
+                tasks: Array.isArray(saved && saved.tasks) ? saved.tasks : [],
                 timer: Object.assign({}, defaultState.timer, saved && saved.timer ? saved.timer : {})
             });
+            loaded.reminders = Object.assign({}, defaultState.reminders, saved && saved.reminders ? saved.reminders : {});
+            loaded.tasks = loaded.tasks.map(function (task) {
+                return Object.assign({ dueDate: "" }, task);
+            });
+            return loaded;
         } catch (error) {
             return clone(defaultState);
         }
@@ -63,6 +70,54 @@
         saveState();
     }
 
+    function localDateKey(date) {
+        var value = date || new Date();
+        return value.getFullYear() + "-" + String(value.getMonth() + 1).padStart(2, "0") + "-" + String(value.getDate()).padStart(2, "0");
+    }
+
+    function updateReminderStatus() {
+        var status = byId("notification-status");
+        var button = byId("btn-enable-notifications");
+        if (!status || !button) return;
+        if (!("Notification" in window)) {
+            status.textContent = "Reminders: unavailable";
+            button.disabled = true;
+            return;
+        }
+        var permission = window.Notification.permission;
+        status.textContent = "Reminders: " + (permission === "granted" ? "on" : permission === "denied" ? "blocked" : "off");
+        button.textContent = permission === "granted" ? "Reminders Enabled" : "Enable Reminders";
+        button.disabled = permission === "granted";
+    }
+
+    function requestNotifications() {
+        if (!("Notification" in window)) { updateReminderStatus(); return; }
+        window.Notification.requestPermission().then(function (permission) {
+            state.reminders.permission = permission;
+            saveState();
+            updateReminderStatus();
+            checkReminders();
+        }).catch(function () { updateReminderStatus(); });
+    }
+
+    function checkReminders() {
+        if (!("Notification" in window) || window.Notification.permission !== "granted") return;
+        var today = localDateKey();
+        state.tasks.filter(function (task) {
+            return task.status !== "done" && task.dueDate && task.dueDate <= today;
+        }).forEach(function (task) {
+            var key = task.id + ":" + task.dueDate;
+            if (state.reminders.notified[key]) return;
+            try {
+                new window.Notification(task.dueDate < today ? "Overdue task" : "Task due today", { body: task.title });
+                state.reminders.notified[key] = Date.now();
+            } catch (error) {
+                return;
+            }
+        });
+        saveState();
+    }
+
     function switchView(view) {
         document.querySelectorAll(".view-pane").forEach(function (pane) {
             pane.classList.toggle("active", pane.id === "view-" + view);
@@ -85,6 +140,11 @@
     function init() {
         window.zenflowState = state;
         setupNavigation();
+        var notifyButton = byId("btn-enable-notifications");
+        if (notifyButton) notifyButton.addEventListener("click", requestNotifications);
+        updateReminderStatus();
+        checkReminders();
+        window.setInterval(checkReminders, 60000);
         updateClock();
         window.setInterval(updateClock, 1000);
         setQuote(state.quoteIndex);

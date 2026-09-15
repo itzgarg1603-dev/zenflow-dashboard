@@ -6,10 +6,16 @@
         var completed = state.tasks.filter(function (task) { return task.status === "done"; }).length;
         var total = state.tasks.length;
         var minutes = state.focusHistory.reduce(function (sum, item) { return sum + Number(item.minutes || 0); }, 0);
+        var today = new Date();
+        var todayKey = today.getFullYear() + "-" + String(today.getMonth() + 1).padStart(2, "0") + "-" + String(today.getDate()).padStart(2, "0");
+        var overdue = state.tasks.filter(function (task) { return task.status !== "done" && task.dueDate && task.dueDate < todayKey; }).length;
+        var dueToday = state.tasks.filter(function (task) { return task.status !== "done" && task.dueDate === todayKey; }).length;
         document.getElementById("stats-total-hours").textContent = (minutes / 60).toFixed(1) + "h";
         document.getElementById("stats-completed-tasks").textContent = String(completed);
         document.getElementById("stats-completion-rate").textContent = (total ? Math.round(completed / total * 100) : 0) + "%";
         document.getElementById("hero-focus-mins").textContent = String(minutes);
+        var headline = document.querySelector(".analytics-headline p");
+        if (headline) headline.textContent = "Track your productivity curves and focus metrics. " + overdue + " overdue, " + dueToday + " due today.";
         var labels = [], values = [], today = new Date();
         for (var i = 6; i >= 0; i -= 1) {
             var date = new Date(today); date.setHours(0, 0, 0, 0); date.setDate(today.getDate() - i);

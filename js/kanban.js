@@ -14,10 +14,16 @@
             var count = document.getElementById("count-" + status);
             if (!container) return;
             container.replaceChildren();
-            var tasks = state.tasks.filter(function (task) { return task.status === status; });
+            var tasks = state.tasks.filter(function (task) { return task.status === status; }).sort(function (a, b) {
+                if (!a.dueDate && !b.dueDate) return 0;
+                if (!a.dueDate) return 1;
+                if (!b.dueDate) return -1;
+                return a.dueDate.localeCompare(b.dueDate);
+            });
             if (count) count.textContent = String(tasks.length);
             tasks.forEach(function (task) {
-                var card = el("article", "task-card");
+                var dueState = getDueState(task);
+                var card = el("article", "task-card" + (dueState ? " task-" + dueState : ""));
                 card.draggable = true;
                 card.dataset.taskId = task.id;
                 card.addEventListener("dragstart", function (event) {
@@ -28,6 +34,7 @@
                 var meta = el("div", "task-card-meta");
                 meta.appendChild(el("span", "card-priority " + task.priority, task.priority + " priority"));
                 meta.appendChild(el("span", "card-tag", "#" + task.tag));
+                if (task.dueDate) meta.appendChild(el("span", "card-due " + dueState, dueLabel(task.dueDate, dueState)));
                 card.appendChild(meta);
                 card.appendChild(el("h4", "", task.title));
                 var actions = el("div", "task-card-actions");
@@ -53,14 +60,33 @@
         var container = document.getElementById("mini-task-container");
         if (!container) return;
         container.replaceChildren();
-        var pending = state.tasks.filter(function (task) { return task.status !== "done"; }).slice(0, 4);
+        var pending = state.tasks.filter(function (task) { return task.status !== "done"; }).sort(compareDueDates).slice(0, 4);
         if (!pending.length) { container.appendChild(el("p", "empty-state", "No pending tasks today. Sit back and relax!")); return; }
         pending.forEach(function (task) {
             var row = el("div", "mini-task-row");
             row.appendChild(el("span", "mini-task-dot " + task.priority));
             row.appendChild(el("span", "", task.title));
+            if (task.dueDate) row.appendChild(el("span", "mini-task-due " + getDueState(task), dueLabel(task.dueDate, getDueState(task))));
             container.appendChild(row);
         });
+    }
+    function compareDueDates(a, b) {
+        if (!a.dueDate && !b.dueDate) return 0;
+        if (!a.dueDate) return 1;
+        if (!b.dueDate) return -1;
+        return a.dueDate.localeCompare(b.dueDate);
+    }
+    function getDueState(task) {
+        if (!task.dueDate || task.status === "done") return "";
+        var today = new Date();
+        var todayKey = today.getFullYear() + "-" + String(today.getMonth() + 1).padStart(2, "0") + "-" + String(today.getDate()).padStart(2, "0");
+        return task.dueDate < todayKey ? "overdue" : task.dueDate === todayKey ? "today" : "upcoming";
+    }
+    function dueLabel(value, dueState) {
+        if (dueState === "overdue") return "Overdue";
+        if (dueState === "today") return "Due today";
+        var parsed = new Date(value + "T00:00:00");
+        return "Due " + parsed.toLocaleDateString([], { month: "short", day: "numeric" });
     }
     function move(id, status) {
         var task = state.tasks.find(function (item) { return item.id === id; });
@@ -75,7 +101,9 @@
             id: "task-" + Date.now(), title: title, priority: document.getElementById("task-priority-select").value,
             tag: document.getElementById("task-tag-select").value, status: "todo", createdAt: new Date().toISOString()
         });
+        state.tasks[state.tasks.length - 1].dueDate = document.getElementById("task-due-date-input").value;
         document.getElementById("task-title-input").value = "";
+        document.getElementById("task-due-date-input").value = "";
         closeModal(); save();
     }
     function init() {
